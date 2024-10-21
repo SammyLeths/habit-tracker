@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { CheckCircle } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Habit, toggleHabit } from "../store/habitSlice";
+import { Habit, toggleHabit, deleteHabit } from "../store/habitSlice";
 
 const HabitList: React.FC = () => {
   const { habits } = useSelector((state: RootState) => state.habits);
@@ -76,10 +76,11 @@ const HabitList: React.FC = () => {
                   </Button>
                   <Button
                     variant="outlined"
+                    onClick={() => dispatch(deleteHabit(habit.id))}
                     color="error"
                     startIcon={<DeleteIcon />}
                   >
-                    Mark Complete
+                    Remove
                   </Button>
                 </Box>
               </Grid>

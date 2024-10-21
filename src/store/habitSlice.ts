@@ -14,31 +14,49 @@ interface HabitState {
   error: string | null;
 }
 
+const HABITS_KEY = "stored_habits"; // Key for localStorage
+
+// Function to get habits from localStorage
+const loadHabitsFromLocalStorage = (): Habit[] => {
+  const storedHabits = localStorage.getItem(HABITS_KEY);
+  return storedHabits ? JSON.parse(storedHabits) : [];
+};
+
+// Function to save habits to localStorage
+const saveHabitsToLocalStorage = (habits: Habit[]) => {
+  localStorage.setItem(HABITS_KEY, JSON.stringify(habits));
+};
+
 const initialState: HabitState = {
-  habits: [],
+  habits: loadHabitsFromLocalStorage(),
   isLoading: false,
   error: null,
 };
 
 export const fetchHabits = createAsyncThunk("habits/fetchHabits", async () => {
-  // simulating an API call
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  const mockHabits: Habit[] = [
-    {
-      id: "1",
-      name: "Read",
-      frequency: "daily",
-      completedDates: [],
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      name: "Exercise",
-      frequency: "weekly",
-      completedDates: [],
-      createdAt: new Date().toISOString(),
-    },
-  ];
+  // Fetching habits from localStorage, simulating API fetch if needed
+  const mockHabits: Habit[] = loadHabitsFromLocalStorage();
+  if (mockHabits.length === 0) {
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // simulate delay
+    const defaultHabits: Habit[] = [
+      {
+        id: "1",
+        name: "Read",
+        frequency: "daily",
+        completedDates: [],
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: "2",
+        name: "Exercise",
+        frequency: "weekly",
+        completedDates: [],
+        createdAt: new Date().toISOString(),
+      },
+    ];
+    saveHabitsToLocalStorage(defaultHabits); // Save default habits to localStorage
+    return defaultHabits;
+  }
   return mockHabits;
 });
 
@@ -59,6 +77,7 @@ const habitSlice = createSlice({
       };
 
       state.habits.push(newHabit);
+      saveHabitsToLocalStorage(state.habits); // Save updated habits
     },
     toggleHabit: (
       state,
@@ -74,6 +93,13 @@ const habitSlice = createSlice({
           habit.completedDates.push(action.payload.date);
         }
       }
+      saveHabitsToLocalStorage(state.habits); // Save updated habits
+    },
+    deleteHabit: (state, action: PayloadAction<string>) => {
+      state.habits = state.habits.filter(
+        (habit) => habit.id !== action.payload
+      );
+      saveHabitsToLocalStorage(state.habits);
     },
   },
   extraReducers: (builder) => {
@@ -92,5 +118,5 @@ const habitSlice = createSlice({
   },
 });
 
-export const { addHabit, toggleHabit } = habitSlice.actions;
+export const { addHabit, toggleHabit, deleteHabit } = habitSlice.actions;
 export default habitSlice.reducer;
